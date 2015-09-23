@@ -1,0 +1,68 @@
+// 작업중 ..............................
+
+apply plugin: 'maven'
+
+ext.optionDeps = []
+ext.providedDeps = []
+
+ext.optional = { optionalDeps << it }
+ext.provided = { providedDeps << it }
+
+install {
+    repositories.mavenInstaller {
+        customizePom(pom, project)
+    }
+}
+
+def customizePom(pom, gradleProject) {
+    pom.whenConfigured { generatedPom ->
+        gradleProject.optionalDeps.each { dep ->
+            generatedPom.dependencies.find { it.artifactId == dep.name }?.optional = true
+        }
+        gradleProject.providedDeps.each { dep ->
+            generatedPom.dependencies.find { it.artifactId == dep.name }?.scope = 'provided'
+        }
+        generatedPom.dependencies.removeAll { dep ->
+            dep.scope == 'test'
+        }
+        generatedPom.project {
+            name = project.group + '.' + project.name
+            description = project.description
+            url = 'http://pom1'
+            organization {
+                name = 'org1'
+                url = 'http://org1'
+            }
+            licenses {
+                license {
+                    name 'license1'
+                    url 'http://license1'
+                    destribution 'xxxxxxxxxxxxx'
+                }
+            }
+            scm {
+                url = 'http://gmind.github.com'
+                connection = 'github://gmind.github.com'
+                developerConnection = 'gradle-with-springboot'
+            }
+            developers {
+                developer {
+                    id = 'sample1'
+                    name = 'name1'
+                    properties {
+                        email = 'email1@mail.com'
+                        hp = '010-000-0001'
+                    }
+                }
+                developer {
+                    id = 'sample2'
+                    name = 'name2'
+                    properties {
+                        email = 'email2@mail.com'
+                        hp = '010-000-0002'
+                    }
+                }
+            }
+        }
+    }
+}

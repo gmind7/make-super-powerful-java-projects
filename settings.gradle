@@ -1,0 +1,15 @@
+rootProject.name = 'make-super-powerful-java-projects'
+
+include "foundation:java-boot-config"
+include "foundation:java-boot-web-config"
+
+include "datastore:java-data-rdbms"
+include "datastore:java-data-redis"
+include "datastore:java-data-multistore"
+
+include "generated:java-jaxb"
+
+include "application:java-batch-appl"
+include "application:java-daemon-appl"
+include "application:java-admin-web"
+include "application:java-service-web"

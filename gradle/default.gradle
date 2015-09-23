@@ -1,0 +1,100 @@
+allprojects {
+
+    // 인텔리J 적용
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    eclipse {
+        classpath {
+           downloadJavadoc = true
+           downloadSources=true
+        }
+    }
+
+    // 인테리J 모듈 설정 셋팅 선언
+    idea {
+        module {
+            inheritOutputDirs = false
+            outputDir = file("$buildDir/classes/main/")
+            jdkName = '1.8'
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+
+    configurations {
+        all {
+            // 제외 처리 필요한 라이브러리 파일 설정
+            exclude group: 'commons-logging'
+            exclude module: 'slf4j-log4j12'
+            resolutionStrategy {
+                // 라이브러리 버전 충돌시 에러 처리
+                //failOnVersionConflict()
+                // 모듈 변경 라이브러리 버전(SNAPSHOT) 캐쉬 없음
+                cacheChangingModulesFor 0, 'seconds'
+                // 동적 버전 라이브러리 버전은 10분만 캐쉬
+                cacheDynamicVersionsFor 10 * 60, 'seconds'
+                forcedModules = [
+                        "org.jboss.logging:jboss-logging:3.1.3.GA"
+                ]
+            }
+        }
+    }
+}
+
+configure(allprojects.findAll { allprojects -> allprojects.name.contains('-') }) {
+
+    apply plugin: 'java'
+
+    // JDK 버전
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    // 컴파일 인코딩 옵션
+    [compileJava, compileTestJava, javadoc]*.options*.encoding = "UTF-8"
+
+    // 컴파일 옵션
+    compileJava {
+        options.compilerArgs << '-Xdoclint:none'
+        options.fork = true
+        options.forkOptions.executable = 'javac'
+    }
+
+    // 의존성 라이브러리 저장소
+    repositories {
+        //maven { url "http://localhost:8090/artifactory/repos" }
+        jcenter()
+        mavenCentral()
+
+    }
+
+    // Spring Dependency Management Plugin을 사용
+    apply plugin: 'io.spring.dependency-management'
+
+    // Spring IO Platform 버전 지정
+    // Gradle에는 원래 정의 되지 않은 task 이지만 io.spring.dependency-management plugin 적용으로 새롭게 생긴 task 이며 Spring IO Platform의 버전을 선언 하게 됩니다.
+    dependencyManagement {
+        imports {
+            // Spring Dependency Management의 버전을 지정 하여 관련 의존성 라이브러리 버전을 같이 관리함.
+            mavenBom "io.spring.platform:platform-bom:1.1.3.RELEASE"
+        }
+        // Version을 Fix할 Library만 정의
+        dependencies {
+            dependency 'org.projectlombok:lombok:1.16.6'
+        }
+    }
+
+    // 서브 프로젝트 src/main/java, src/main/resources, src/test/java, src/test/resources 폴더 만들기
+    task initSrc << {
+        project.sourceSets*.allSource.srcDirTrees.flatten().dir.each { dir ->
+            if (project.name.contains("-") && !project.name.equals(rootProject.name)) {
+                dir.mkdirs()
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    description = "Generatres gradlew[.bat] scripts"
+    gradleVersion = "2.3.10"
+}

@@ -1,0 +1,116 @@
+/// 작업중..............................
+
+configure(subprojects.findAll { subproject -> subproject.plugins.hasPlugin('java') }) {
+
+    group = projectGroup
+    version = projectVersion
+
+    apply from: "${gradleScriptDir}/maven.gradle"
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+    jar {
+        exclude '*.conf'
+        exclude '*.xml'
+        exclude '*.yml'
+        exclude '*.groovy'
+        exclude '**/*.conf'
+        exclude '**/*.xml'
+        exclude '**/*.yml'
+        exclude '**/*.groovy'
+        manifest {
+            attributes 'Implementation-Title': project.name
+            attributes 'Implementation-Version': project.version
+            attributes 'Implementation-Vendor': project.group
+            attributes 'Implementation-DateTime': new Date().format('yyyy-MM-dd-HH:mm:ss')
+        }
+    }
+
+    task sourceJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allJava
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
+    apply plugin: 'com.jfrog.artifactory-upload'
+
+    artifacts {
+        archives sourceJar
+        archives javadocJar
+    }
+
+    artifactoryPublish {
+        dependsOn sourceJar, javadocJar
+    }
+
+    artifactory {
+        contextUrl = env.artifactory.host.url
+        publish {
+            repository {
+                repoKey = env.artifactory.repokey
+                username = env.artifactory.username
+                password = env.artifactory.password
+                maven = true
+            }
+            defaults {
+                properties = ['environment' : env.profile]
+                publishPom = true
+            }
+        }
+        resolve {
+            repository {
+                repoKey = 'lib-release'
+                username = env.artifactory.username
+                password = env.artifactory.password
+                maven = true
+            }
+        }
+    }
+}
+
+configure(subprojects.findAll { subproject -> subproject.plugins.hasPlugin('application') }) {
+
+    task copySharedResources << {
+        def sharedResourcesDirs = rootProject.subprojects.findAll {
+            it.name.endsWith('-boot-config')
+        }.sourceSets.main.output.resourcesDir
+        copy {
+            from sharedResourcesDirs
+            into sourceSets.main.output.resourcesDir
+        }
+    }
+
+    processResources.dependsOn copySharedResources
+
+    task distZip {
+
+    }
+
+    task launcherZip(type: Zip, dependsOn: distZip) {
+        classifier = 'launcher'
+        from file("${buildDir}/exploded/${env.profile}/${applicationName}-${project.version}")
+        include '**/*'
+    }
+
+    artifacts {
+        archives sourceJar
+        archives javadocJar
+        archives launcherZip
+    }
+
+    artifactoryPublish {
+        dependsOn sourceJar, javadocJar, launcherZip
+    }
+
+}

@@ -1,0 +1,106 @@
+// 1. buildScript 선언
+// Gradle에서 제공 되는 빌드 기능 이외의 직접 만든 Plugin 기능이나 외부 기능(외부 라이브러리)을 사용하고자 한다면 추가로 정의
+buildscript {
+
+    ext.gradleScriptDir = "${project.getRootDir()}/gradle"
+
+    def profile = project.hasProperty('profile') ? project.getProperty('profile') : 'local'
+
+    logger.quiet "######### Lodding Configuration For Profile Active : [${profile}] Version : [${projectVersion}] ###########"
+
+    def configFile = file("${gradleScriptDir}/environment.groovy")
+    def parsedConfig = new ConfigSlurper(profile).parse(configFile.toURI().toURL())
+
+    ext.env = parsedConfig
+
+    // dependencies.classpath의 외부 라이브러리가 있는 repositories를 별도로 선언
+    repositories {
+        //maven { url "http://localhost:8090/artifactory/repos" }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        // Spring IO Platform의 Gradle Plugin인 dependency-management-plugin 선언
+        classpath "io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE"
+        // JFrog Artifactory Gradle Plugin
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
+    }
+}
+
+apply from: "${gradleScriptDir}/default.gradle"
+
+project('foundation:java-boot-config') {
+    dependencies {
+        // Spring Boot
+        compile 'org.springframework.boot:spring-boot-starter'
+        // Lombok
+        compile "org.projectlombok:lombok"
+    }
+}
+
+project('foundation:java-boot-web-config') {
+    dependencies {
+        compile project(':foundation:java-boot-config')
+        // Spring Boot
+        compile 'org.springframework.boot:spring-boot-starter-mustache'
+        compile 'org.springframework.boot:spring-boot-starter-undertow'
+    }
+}
+
+project('generated:java-jaxb') {
+    dependencies {
+
+    }
+}
+
+project('datastore:java-data-rdbms') {
+    dependencies {
+        compile project(':foundation:java-boot-config')
+    }
+}
+
+project('datastore:java-data-redis') {
+    dependencies {
+        compile project(':foundation:java-boot-config')
+    }
+}
+
+project('datastore:java-data-multistore') {
+    dependencies {
+        compile project(':datastore:java-data-rdbms')
+        compile project(':datastore:java-data-redis')
+    }
+}
+
+project('application:java-batch-appl') {
+    dependencies {
+        compile project(':foundation:java-boot-config')
+        compile project(':datastore:java-data-multistore')
+    }
+}
+
+project('application:java-daemon-appl') {
+    dependencies {
+        compile project(':foundation:java-boot-config')
+        compile project(':datastore:java-data-multistore')
+    }
+}
+
+project('application:java-admin-web') {
+    dependencies {
+        compile project(':foundation:java-boot-web-config')
+        compile project(':datastore:java-data-multistore')
+    }
+}
+
+project('application:java-service-web') {
+    dependencies {
+        compile project(':foundation:java-boot-web-config')
+        compile project(':datastore:java-data-multistore')
+    }
+}
+
+apply from: "${gradleScriptDir}/versioning.gradle"
+apply from: "${gradleScriptDir}/delombok.gradle"
+apply from: "${gradleScriptDir}/archive.gradle"
+apply from: "${gradleScriptDir}/sonarqube.gradle"

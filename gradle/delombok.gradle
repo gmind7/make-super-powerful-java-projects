@@ -1,0 +1,66 @@
+task alljavadoc(type: Javadoc) {
+    options {
+        encoding = 'UTF-8'
+        memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+        author = true
+        header = project.name
+        addStringOption('Xdoclint:none')
+    }
+    // 서브 프로젝트 빌드 폴더에 delombok 처리 되어 있는 자바 파일을 대상 소스로 간주함.
+    source subprojects.collect { project ->
+        "${project.getBuildDir()}/src-delomboked"
+    }
+    // alljavadoc 파일이 만들어 질 폴더 지정
+    destinationDir = new File(buildDir, 'allJavadoc')
+    // java source의 classpath 지정
+    classpath = files(subprojects.collect { project ->
+        project.sourceSets.main.compileClasspath
+    })
+}
+
+configure(subprojects.findAll { subproject -> subproject.plugins.hasPlugin('java') }) {
+
+    // lombok 적용 파일을 delombok 처리
+    task delombok {
+        ext.srcDelomboked = "${buildDir}/src-delomboked"
+        def srcJava = 'src/main/java'
+
+        // gradle compileJava task를 dependency
+        dependsOn configurations.compile.getTaskDependencyFromProjectDependency(true, 'compileJava')
+
+        // src/main 소스를 가지고 delombok 처리 할 파일과 위치 지정
+        inputs.files file(srcJava)
+        outputs.dir file(srcDelomboked)
+
+        doLast {
+            def collection = configurations.compile
+            def sumTree = collection + fileTree(dir: 'bin')
+
+            // lombok에서 제공 하고 있는 ant를 이용한 delombok 처리 방법을 gradle에서 이용
+            ant.taskdef(name: 'delombok', classname: 'lombok.delombok.ant.DelombokTask', classpath: configurations.compile.asPath)
+            ant.delombok(from: srcJava, to: srcDelomboked, classpath: sumTree.asPath)
+
+            copy {
+                from {
+                    srcDelomboked
+                    fileMode 0744
+                }
+                into srcJava
+            }
+        }
+    }
+
+    // javadoc은 delombok 처리 되어 있는 파일을 소스로 간주 함.
+    javadoc {
+        dependsOn delombok
+        source = fileTree(dir: delombok.srcDelomboked)
+        options {
+            encoding = 'UTF-8'
+            memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+            author = true
+            header = project.name
+            addStringOption('Xdoclint:none')
+        }
+    }
+
+}
