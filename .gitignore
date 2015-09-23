@@ -17,6 +17,8 @@ hs_err_pid*
 *.ear
 /build
 /bin
+**/build
+**/bin
 
 # IDE Files #
 *.iml

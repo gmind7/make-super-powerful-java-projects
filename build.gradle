@@ -8,6 +8,7 @@ buildscript {
 
     logger.quiet "######### Lodding Configuration For Profile Active : [${profile}] Version : [${projectVersion}] ###########"
 
+    // profile별 Environment 셋팅
     def configFile = file("${gradleScriptDir}/environment.groovy")
     def parsedConfig = new ConfigSlurper(profile).parse(configFile.toURI().toURL())
 
@@ -19,6 +20,7 @@ buildscript {
         jcenter()
         mavenCentral()
     }
+
     dependencies {
         // Spring IO Platform의 Gradle Plugin인 dependency-management-plugin 선언
         classpath "io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE"

@@ -1,6 +1,6 @@
 allprojects {
 
-    // 인텔리J 적용
+    // 인텔리J, 이클립스 적용
     apply plugin: 'idea'
     apply plugin: 'eclipse'
 
