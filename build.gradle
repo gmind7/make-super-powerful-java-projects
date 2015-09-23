@@ -23,9 +23,11 @@ buildscript {
 
     dependencies {
         // Spring IO Platform의 Gradle Plugin인 dependency-management-plugin 선언
-        classpath "io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE"
+        classpath 'io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE'
         // JFrog Artifactory Gradle Plugin
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
+        // Asciidoctor Gradle Plugin
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
     }
 }
 
@@ -96,6 +98,13 @@ project('application:java-admin-web') {
 }
 
 project('application:java-service-web') {
+    dependencies {
+        compile project(':foundation:java-boot-web-config')
+        compile project(':datastore:java-data-multistore')
+    }
+}
+
+project('application:java-docs-web') {
     dependencies {
         compile project(':foundation:java-boot-web-config')
         compile project(':datastore:java-data-multistore')
