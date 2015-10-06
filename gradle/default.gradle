@@ -96,5 +96,5 @@ configure(allprojects.findAll { allprojects -> allprojects.name.contains('-') })
 
 task wrapper(type: Wrapper) {
     description = "Generatres gradlew[.bat] scripts"
-    gradleVersion = "2.3.10"
+    gradleVersion = "2.7"
 }

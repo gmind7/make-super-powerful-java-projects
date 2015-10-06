@@ -20,15 +20,16 @@ buildscript {
         jcenter()
         mavenCentral()
     }
+}
 
-    dependencies {
-        // Spring IO Platform의 Gradle Plugin인 dependency-management-plugin 선언
-        classpath 'io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE'
-        // JFrog Artifactory Gradle Plugin
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
-        // Asciidoctor Gradle Plugin
-        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.0'
-    }
+plugins {
+    // Spring IO Platform의 Gradle Plugin인 dependency-management-plugin 선언
+    id "io.spring.dependency-management" version "0.5.2.RELEASE"
+    // JFrog Artifactory Gradle Plugin
+    id "com.jfrog.artifactory" version "3.1.1"
+    // Asciidoctor Gradle Plugin
+    id 'org.asciidoctor.convert' version '1.5.2'
+    id 'org.kordamp.gradle.livereload' version '0.2.1'
 }
 
 apply from: "${gradleScriptDir}/default.gradle"
@@ -105,6 +106,9 @@ project('application:java-service-web') {
 }
 
 project('application:java-docs-web') {
+
+
+
     dependencies {
         compile project(':foundation:java-boot-web-config')
         compile project(':datastore:java-data-multistore')

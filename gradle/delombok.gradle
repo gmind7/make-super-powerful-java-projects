@@ -32,23 +32,22 @@ configure(subprojects.findAll { subproject -> subproject.plugins.hasPlugin('java
         inputs.files file(srcJava)
         outputs.dir file(srcDelomboked)
 
-        doLast {
-            def collection = configurations.compile
-            def sumTree = collection + fileTree(dir: 'bin')
-            if(inputs.files.asFileTree.files.size()>0) {
-                // lombok에서 제공 하고 있는 ant를 이용한 delombok 처리 방법을 gradle에서 이용
-                ant.taskdef(name: 'delombok', classname: 'lombok.delombok.ant.DelombokTask', classpath: configurations.compile.asPath)
-                ant.delombok(from: srcJava, to: srcDelomboked, classpath: sumTree.asPath)
-
-                copy {
-                    from {
-                        srcDelomboked
-                        fileMode 0744
-                    }
-                    into srcJava
-                }
-            }
-        }
+//        doLast {
+//            def collection = configurations.compile
+//            def sumTree = collection + fileTree(dir: 'bin')
+//            if(inputs.files.asFileTree.files.size()>0) {
+//                // lombok에서 제공 하고 있는 ant를 이용한 delombok 처리 방법을 gradle에서 이용
+//                ant.taskdef(name: 'delombok', classname: 'lombok.delombok.ant.DelombokTask', classpath: configurations.compile.asPath)
+//                ant.delombok(from: srcJava, to: srcDelomboked, classpath: sumTree.asPath)
+//                copy {
+//                    from {
+//                        srcDelomboked
+//                        fileMode 0744
+//                    }
+//                    into srcJava
+//                }
+//            }
+//        }
     }
 
     // javadoc은 delombok 처리 되어 있는 파일을 소스로 간주 함.

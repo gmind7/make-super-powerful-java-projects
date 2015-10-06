@@ -114,3 +114,33 @@ configure(subprojects.findAll { subproject -> subproject.plugins.hasPlugin('appl
     }
 
 }
+
+configure(subprojects.findAll { subproject -> subproject.plugins.hasPlugin('org.asciidoctor.convert') }) {
+
+    apply plugin: 'org.kordamp.gradle.livereload'
+
+    asciidoctor {
+        def source = project.sourceSets.main.java.srcDirs[0]
+        def build = file('build.gradle')
+
+        // add extra inputs since these include files that are included
+        inputs.dir source
+
+        attributes	'build-gradle': file('build.gradle'),
+                'sourcedir': source,
+                'endpoint-url': 'http://127.0.0.1',
+
+                'source-highlighter' : 'coderay',
+                'imagesdir':'images',
+                'toc':'left',
+                'icons': 'font',
+                'setanchors':'true',
+                'idprefix':'',
+                'idseparator':'-',
+                'docinfo1':'true'
+    }
+
+    liveReload {
+        docRoot asciidoctor.outputDir.canonicalPath
+    }
+}
